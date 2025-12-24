@@ -268,7 +268,7 @@ export default function DayTripBookingModal({
                   Guests
                 </label>
                 <div className="flex gap-3">
-                  {[1, 2, 3].map((num) => (
+                  {[1, 2].map((num) => (
                     <button
                       key={num}
                       onClick={() => setGuests(num)}
@@ -283,7 +283,7 @@ export default function DayTripBookingModal({
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Price is per car, up to 3 guests
+                  Price is per car, up to 2 guests
                 </p>
               </div>
             </div>
