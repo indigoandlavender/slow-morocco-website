@@ -1,0 +1,14 @@
+# Robots.txt for Slow Mauritius
+# https://slowmauritius.com
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /client/
+Disallow: /proposal/
+
+# Sitemap location
+Sitemap: https://slowmauritius.com/sitemap.xml
