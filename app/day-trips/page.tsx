@@ -17,6 +17,7 @@ interface DayTrip {
 
 export default function DayTripsPage() {
   const [dayTrips, setDayTrips] = useState<DayTrip[]>([]);
+  const [heroImage, setHeroImage] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function DayTripsPage() {
       .then((r) => r.json())
       .then((data) => {
         setDayTrips(data.dayTrips || []);
+        setHeroImage(data.heroImage || "");
         setLoading(false);
       })
       .catch((err) => {
@@ -34,19 +36,32 @@ export default function DayTripsPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Hero Header */}
-      <section className="pt-32 pb-16 md:pt-40 md:pb-20 bg-muted">
-        <div className="container mx-auto px-6 lg:px-16 max-w-4xl text-center">
-          <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-6">
-            From Marrakech
-          </p>
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl mb-6">
-            Day Tours
-          </h1>
-          <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
-            Leave in the morning, return by evening. Private car, English-speaking 
-            driver, the freedom to stop wherever something catches your eye.
-          </p>
+      {/* Hero Image */}
+      <section className="relative h-[50vh] md:h-[60vh] bg-[#e8e0d4]">
+        {heroImage && (
+          <Image
+            src={heroImage}
+            alt="Day tours from Marrakech"
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Content */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-white px-6">
+            <p className="text-xs tracking-[0.2em] uppercase opacity-80 mb-4">
+              From Marrakech
+            </p>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl mb-4">
+              Day Tours
+            </h1>
+            <p className="text-lg opacity-90 max-w-xl mx-auto">
+              Leave in the morning, return by evening. Private car, the freedom to stop wherever something catches your eye.
+            </p>
+          </div>
         </div>
       </section>
 

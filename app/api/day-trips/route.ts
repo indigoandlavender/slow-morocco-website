@@ -8,6 +8,11 @@ export async function GET() {
   try {
     const dayTrips = await getSheetData("Day_Trips");
     const addons = await getSheetData("Day_Trip_Addons");
+    const settings = await getSheetData("Website_Settings");
+    
+    // Get hero image from settings
+    const heroSetting = settings.find((s: any) => s.Key === "day_trips_hero_image");
+    const heroImage = heroSetting ? convertDriveUrl(heroSetting.Value || "") : "";
     
     // Format day trips
     const formattedTrips = dayTrips
@@ -48,13 +53,14 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      heroImage,
       dayTrips: formattedTrips,
       addons: formattedAddons,
     });
   } catch (error: any) {
     console.error("Day trips fetch error:", error);
     return NextResponse.json(
-      { success: false, dayTrips: [], addons: [], error: error.message },
+      { success: false, heroImage: "", dayTrips: [], addons: [], error: error.message },
       { status: 500 }
     );
   }
