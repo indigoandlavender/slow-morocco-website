@@ -254,12 +254,22 @@ export default function JourneysPage() {
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                     )}
+                    {/* Category Badge */}
+                    {journey.category && (
+                      <div className="absolute top-4 left-4">
+                        <span className="text-[10px] tracking-[0.1em] uppercase bg-background/90 px-3 py-1.5">
+                          {journey.category}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <h3 className="font-serif text-xl mb-2">
                     {journey.title}
                   </h3>
-                  <div className="text-muted-foreground/50 text-xs mb-2">○</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {journey.durationDays} days
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                     {journey.description}
                   </p>
                 </Link>

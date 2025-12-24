@@ -25,6 +25,7 @@ export async function GET() {
         price: j.Price_USD || "",
         startCity: j.Start_City || "",
         focus: j.Focus_Type || "",
+        category: j.Category || "",
         journeyId: j.Journey_ID || "",
       }));
 
