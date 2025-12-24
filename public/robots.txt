@@ -1,5 +1,5 @@
-# Robots.txt for Slow Mauritius
-# https://slowmauritius.com
+# Robots.txt for Slow Morocco
+# https://slowmorocco.com
 
 User-agent: *
 Allow: /
@@ -11,4 +11,4 @@ Disallow: /client/
 Disallow: /proposal/
 
 # Sitemap location
-Sitemap: https://slowmauritius.com/sitemap.xml
+Sitemap: https://slowmorocco.com/sitemap.xml

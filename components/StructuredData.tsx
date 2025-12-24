@@ -2,47 +2,47 @@ export default function StructuredData() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
-    name: "Slow Mauritius",
-    description: "Thoughtful private journeys across Mauritius — designed for travellers who prefer ease and deep immersion.",
-    url: "https://slowmauritius.com",
-    email: "hello@slowmauritius.com",
+    name: "Slow Morocco",
+    description: "Thoughtful private journeys across Morocco — designed for travellers who prefer depth over speed.",
+    url: "https://slowmorocco.com",
+    email: "hello@slowmorocco.com",
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Port Louis",
-      addressCountry: "MU",
+      addressLocality: "Marrakech",
+      addressCountry: "MA",
     },
     areaServed: {
       "@type": "Country",
-      name: "Mauritius",
+      name: "Morocco",
     },
-    image: "https://slowmauritius.com/og-image.jpg",
+    image: "https://slowmorocco.com/og-image.jpg",
     priceRange: "€€€",
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Mauritius Private Journeys",
+      name: "Morocco Private Journeys",
       itemListElement: [
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "TouristTrip",
-            name: "Black River Gorges Explorer",
-            description: "Discover the volcanic heart of Mauritius",
+            name: "Imperial Cities",
+            description: "Discover Fes, Meknes, and Rabat",
           },
         },
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "TouristTrip",
-            name: "Coastal Paradise",
-            description: "Turquoise lagoons and pristine beaches",
+            name: "Sahara Explorer",
+            description: "Journey to the desert dunes of Erg Chebbi",
           },
         },
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "TouristTrip",
-            name: "Complete Mauritius",
-            description: "The full island experience",
+            name: "Atlas Mountains",
+            description: "Trek through Berber villages and high passes",
           },
         },
       ],

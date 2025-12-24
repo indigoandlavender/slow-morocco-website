@@ -14,7 +14,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <span className="font-serif text-sm md:text-base tracking-[0.12em] text-foreground whitespace-nowrap">
-              S L O W &nbsp; M A U R I T I U S
+              S L O W &nbsp; M O R O C C O
             </span>
           </Link>
 
