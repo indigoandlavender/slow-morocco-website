@@ -234,7 +234,7 @@ export default function DayTripDetailPage() {
               €{dayTrip.priceEUR}
             </p>
             <p className="text-sm opacity-70 mb-6">
-              per car (up to 3 guests)
+              per car (up to 2 guests)
             </p>
             <button
               onClick={() => setIsBookingOpen(true)}
