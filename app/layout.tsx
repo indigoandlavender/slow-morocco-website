@@ -7,16 +7,16 @@ import Chatbot from "@/components/Chatbot";
 import StructuredData from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://slowmauritius.com"),
+  metadataBase: new URL("https://slowmorocco.com"),
   title: {
-    default: "Slow Mauritius | Private Journeys Through Mauritius",
-    template: "%s | Slow Mauritius",
+    default: "Slow Morocco | Private Journeys Through Morocco",
+    template: "%s | Slow Morocco",
   },
-  description: "Thoughtful private journeys across Mauritius — designed for travellers who prefer ease and deep immersion. From volcanic peaks to turquoise lagoons, crafted around what matters to you.",
-  keywords: ["mauritius private tours", "luxury mauritius travel", "mauritius journeys", "port louis tours", "black river gorges", "mauritius itinerary", "private guide mauritius", "mauritius travel agency"],
-  authors: [{ name: "Slow Mauritius" }],
-  creator: "Slow Mauritius",
-  publisher: "Slow Mauritius",
+  description: "Thoughtful private journeys across Morocco — designed for travellers who prefer depth over speed. From the Atlas Mountains to the Sahara, crafted around what matters to you.",
+  keywords: ["morocco private tours", "luxury morocco travel", "morocco journeys", "marrakech tours", "sahara desert tours", "atlas mountains", "morocco itinerary", "private guide morocco", "morocco travel agency"],
+  authors: [{ name: "Slow Morocco" }],
+  creator: "Slow Morocco",
+  publisher: "Slow Morocco",
   formatDetection: {
     email: false,
     address: false,
@@ -25,23 +25,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://slowmauritius.com",
-    siteName: "Slow Mauritius",
-    title: "Slow Mauritius | Private Journeys Through Mauritius",
-    description: "Thoughtful private journeys across Mauritius — designed for travellers who prefer ease and deep immersion.",
+    url: "https://slowmorocco.com",
+    siteName: "Slow Morocco",
+    title: "Slow Morocco | Private Journeys Through Morocco",
+    description: "Thoughtful private journeys across Morocco — designed for travellers who prefer depth over speed.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Slow Mauritius - Private journeys through Mauritius",
+        alt: "Slow Morocco - Private journeys through Morocco",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Slow Mauritius | Private Journeys Through Mauritius",
-    description: "Thoughtful private journeys across Mauritius — designed for travellers who prefer ease and deep immersion.",
+    title: "Slow Morocco | Private Journeys Through Morocco",
+    description: "Thoughtful private journeys across Morocco — designed for travellers who prefer depth over speed.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://slowmauritius.com",
+    canonical: "https://slowmorocco.com",
   },
   icons: {
     icon: [
@@ -75,7 +75,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-ET63GLFM4N"
+          src="https://www.googletagmanager.com/gtag/js?id=G-CSBQECNF60"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -83,7 +83,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-ET63GLFM4N');
+            gtag('config', 'G-CSBQECNF60');
           `}
         </Script>
       </head>
