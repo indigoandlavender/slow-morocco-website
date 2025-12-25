@@ -272,44 +272,50 @@ function PayPalButton({
 }
 
 // ============================================================================
-// QUANTITY SELECTOR
+// QUANTITY SELECTOR (same style as Riad)
 // ============================================================================
 
 function QuantitySelector({
   label,
   value,
-  min,
-  max,
+  min = 1,
+  max = 10,
   onChange,
   note,
 }: {
   label: string;
   value: number;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   onChange: (val: number) => void;
   note?: string;
 }) {
   return (
     <div className="mt-6">
-      <p className="text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-3">{label}</p>
-      <div className="flex gap-3">
-        {Array.from({ length: max - min + 1 }).map((_, i) => {
-          const num = min + i;
-          return (
-            <button
-              key={num}
-              onClick={() => onChange(num)}
-              className={`flex-1 py-3 border text-sm transition-colors ${
-                value === num
-                  ? "border-foreground bg-foreground text-white"
-                  : "border-foreground/20 hover:border-foreground/40"
-              }`}
-            >
-              {num}
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between py-4 border-b border-foreground/10">
+        <span className="text-sm text-foreground/70">{label}</span>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => onChange(Math.max(min, value - 1))}
+            disabled={value <= min}
+            className="w-8 h-8 flex items-center justify-center border border-foreground/20 text-foreground/50 hover:border-foreground/40 hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <line x1="2" y1="6" x2="10" y2="6" />
+            </svg>
+          </button>
+          <span className="w-8 text-center text-foreground">{value}</span>
+          <button
+            onClick={() => onChange(Math.min(max, value + 1))}
+            disabled={value >= max}
+            className="w-8 h-8 flex items-center justify-center border border-foreground/20 text-foreground/50 hover:border-foreground/40 hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <line x1="6" y1="2" x2="6" y2="10" />
+              <line x1="2" y1="6" x2="10" y2="6" />
+            </svg>
+          </button>
+        </div>
       </div>
       {note && <p className="text-[10px] text-foreground/40 mt-2">{note}</p>}
     </div>
