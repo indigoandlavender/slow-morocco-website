@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { X, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
 
 interface Addon {
   id: string;
@@ -28,32 +28,179 @@ declare global {
   }
 }
 
-// Isolated PayPal Button Component
-function PayPalButton({
-  totalEUR,
-  tripTitle,
-  tripDate,
-  guests,
-  onSuccess,
-  containerId,
+// ============================================================================
+// CALENDAR COMPONENT
+// ============================================================================
+
+function Calendar({
+  selectedDate,
+  onSelectDate,
+  minDaysFromNow = 2,
 }: {
-  totalEUR: number;
-  tripTitle: string;
-  tripDate: string;
-  guests: number;
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+  minDaysFromNow?: number;
+}) {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const minDate = new Date(today);
+  minDate.setDate(minDate.getDate() + minDaysFromNow);
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    return { daysInMonth, startingDay };
+  };
+
+  const formatDateStr = (year: number, month: number, day: number) => {
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  };
+
+  const isBeforeMinDate = (year: number, month: number, day: number) => {
+    const date = new Date(year, month, day);
+    return date < minDate;
+  };
+
+  const { daysInMonth, startingDay } = getDaysInMonth(currentMonth);
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", 
+                      "July", "August", "September", "October", "November", "December"];
+
+  const prevMonth = () => {
+    const prev = new Date(year, month - 1, 1);
+    if (prev >= new Date(today.getFullYear(), today.getMonth(), 1)) {
+      setCurrentMonth(prev);
+    }
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(year, month + 1, 1));
+  };
+
+  const canGoPrev = new Date(year, month - 1, 1) >= new Date(today.getFullYear(), today.getMonth(), 1);
+
+  return (
+    <div>
+      {/* Month navigation */}
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={prevMonth}
+          disabled={!canGoPrev}
+          className="w-8 h-8 flex items-center justify-center text-foreground/40 hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <polyline points="10,2 5,8 10,14" />
+          </svg>
+        </button>
+        <span className="text-sm tracking-wide text-foreground/70">
+          {monthNames[month]} {year}
+        </span>
+        <button
+          onClick={nextMonth}
+          className="w-8 h-8 flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <polyline points="6,2 11,8 6,14" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-2">
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+          <div key={day} className="text-center text-[10px] tracking-wider text-foreground/30 uppercase">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {/* Empty cells for days before month starts */}
+        {Array.from({ length: startingDay }).map((_, i) => (
+          <div key={`empty-${i}`} className="aspect-square" />
+        ))}
+
+        {/* Days of the month */}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const dateStr = formatDateStr(year, month, day);
+          const isDisabled = isBeforeMinDate(year, month, day);
+          const isSelected = dateStr === selectedDate;
+
+          return (
+            <button
+              key={day}
+              onClick={() => !isDisabled && onSelectDate(dateStr)}
+              disabled={isDisabled}
+              className={`
+                aspect-square flex items-center justify-center text-sm relative transition-all
+                ${isDisabled ? "cursor-not-allowed text-foreground/20" : "cursor-pointer hover:bg-foreground/5"}
+                ${isSelected ? "bg-foreground text-white" : ""}
+                ${!isDisabled && !isSelected ? "text-foreground/70" : ""}
+              `}
+            >
+              <span className="relative z-10">{day}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-6 mt-6 pt-4 border-t border-foreground/10">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-foreground" />
+          <span className="text-[10px] tracking-wide text-foreground/40 uppercase">Selected</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 border border-foreground/20 text-foreground/20 flex items-center justify-center text-[8px]">—</div>
+          <span className="text-[10px] tracking-wide text-foreground/40 uppercase">Unavailable</span>
+        </div>
+      </div>
+
+      <p className="text-[10px] text-foreground/40 mt-3">
+        Minimum 48 hours notice required
+      </p>
+    </div>
+  );
+}
+
+// ============================================================================
+// PAYPAL COMPONENT
+// ============================================================================
+
+function PayPalButton({
+  amount,
+  description,
+  onSuccess,
+  onError,
+}: {
+  amount: string;
+  description: string;
   onSuccess: (transactionId: string) => void;
-  containerId: string;
+  onError: (err: any) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
   const buttonsInstance = useRef<any>(null);
   const isMounted = useRef(true);
 
   useEffect(() => {
     isMounted.current = true;
 
-    const loadAndRender = async () => {
-      if (!containerRef.current || !isMounted.current) return;
-
+    const renderButton = async () => {
       // Load PayPal SDK if needed
       if (!window.paypal) {
         const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
@@ -66,82 +213,112 @@ function PayPalButton({
             script.onload = resolve;
           });
         } else {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
       }
 
-      if (!window.paypal || !containerRef.current || !isMounted.current) return;
-
-      // Clear container
-      containerRef.current.innerHTML = "";
+      if (!containerRef.current || !window.paypal || !isMounted.current) return;
 
       try {
+        containerRef.current.innerHTML = "";
+
         buttonsInstance.current = window.paypal.Buttons({
-          style: {
-            layout: "vertical",
-            color: "black",
-            shape: "rect",
-            label: "pay",
-            height: 50,
-          },
-          createOrder: (_data: any, actions: any) => {
+          style: { layout: "vertical", color: "black", shape: "rect", label: "pay", height: 50 },
+          createOrder: (_: any, actions: any) => {
             return actions.order.create({
-              purchase_units: [
-                {
-                  description: `${tripTitle} - ${tripDate} - ${guests} guest(s)`,
-                  amount: {
-                    value: totalEUR.toFixed(2),
-                    currency_code: "EUR",
-                  },
-                },
-              ],
+              purchase_units: [{ description, amount: { value: amount, currency_code: "EUR" } }],
             });
           },
-          onApprove: async (_data: any, actions: any) => {
+          onApprove: async (_: any, actions: any) => {
             const order = await actions.order.capture();
-            if (isMounted.current) {
-              onSuccess(order.id);
-            }
+            if (isMounted.current) onSuccess(order.id);
           },
           onError: (err: any) => {
-            console.error("PayPal error:", err);
-            if (isMounted.current) {
-              alert("Payment failed. Please try again.");
-            }
+            if (isMounted.current) onError(err);
           },
         });
 
         if (containerRef.current && isMounted.current) {
           await buttonsInstance.current.render(containerRef.current);
+          setLoading(false);
         }
       } catch (err) {
         console.error("PayPal render error:", err);
+        setLoading(false);
       }
     };
 
-    loadAndRender();
+    renderButton();
 
     return () => {
       isMounted.current = false;
       if (buttonsInstance.current?.close) {
-        try {
-          buttonsInstance.current.close();
-        } catch (e) {
-          // Ignore cleanup errors
-        }
+        try { buttonsInstance.current.close(); } catch (e) {}
       }
       buttonsInstance.current = null;
     };
-  }, [totalEUR, tripTitle, tripDate, guests, onSuccess]);
+  }, [amount, description, onSuccess, onError]);
 
   return (
-    <div
-      ref={containerRef}
-      id={containerId}
-      className="min-h-[50px]"
-    />
+    <div>
+      {loading && (
+        <div className="flex justify-center py-6">
+          <div className="w-5 h-5 border border-foreground/20 border-t-foreground rounded-full animate-spin" />
+        </div>
+      )}
+      <div ref={containerRef} className="min-h-[50px]" />
+    </div>
   );
 }
+
+// ============================================================================
+// QUANTITY SELECTOR
+// ============================================================================
+
+function QuantitySelector({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  note,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (val: number) => void;
+  note?: string;
+}) {
+  return (
+    <div className="mt-6">
+      <p className="text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-3">{label}</p>
+      <div className="flex gap-3">
+        {Array.from({ length: max - min + 1 }).map((_, i) => {
+          const num = min + i;
+          return (
+            <button
+              key={num}
+              onClick={() => onChange(num)}
+              className={`flex-1 py-3 border text-sm transition-colors ${
+                value === num
+                  ? "border-foreground bg-foreground text-white"
+                  : "border-foreground/20 hover:border-foreground/40"
+              }`}
+            >
+              {num}
+            </button>
+          );
+        })}
+      </div>
+      {note && <p className="text-[10px] text-foreground/40 mt-2">{note}</p>}
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN MODAL COMPONENT
+// ============================================================================
 
 export default function DayTripBookingModal({
   isOpen,
@@ -184,11 +361,6 @@ export default function DayTripBookingModal({
   const totalEUR = basePriceEUR + addonsTotal;
   const totalMAD = basePriceMAD + addonsTotalMAD;
 
-  // Minimum date (48 hours from now)
-  const minDate = new Date();
-  minDate.setDate(minDate.getDate() + 2);
-  const minDateStr = minDate.toISOString().split("T")[0];
-
   // Reset when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -205,7 +377,13 @@ export default function DayTripBookingModal({
     }
   }, [isOpen]);
 
-  const handlePaymentSuccess = async (transactionId: string) => {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T12:00:00");
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const handlePaymentSuccess = useCallback(async (transactionId: string) => {
     setIsSubmitting(true);
 
     try {
@@ -251,7 +429,12 @@ export default function DayTripBookingModal({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [tripSlug, tripTitle, tripDate, guests, basePriceMAD, selectedAddons, addons, addonsTotalMAD, totalMAD, totalEUR, guestName, guestEmail, guestPhone, pickupLocation, notes]);
+
+  const handlePaymentError = useCallback((err: any) => {
+    console.error("PayPal error:", err);
+    alert("Payment failed. Please try again.");
+  }, []);
 
   const toggleAddon = (addonId: string) => {
     setSelectedAddons((prev) =>
@@ -264,10 +447,7 @@ export default function DayTripBookingModal({
   const canProceedStep1 = tripDate && guests;
   const canProceedStep3 = guestName.trim() && guestEmail.trim() && pickupLocation.trim();
 
-  // Don't render on server
   if (!mounted) return null;
-
-  // Keep modal in DOM but hidden when closed
   if (!isOpen) return null;
 
   const modalContent = (
@@ -276,26 +456,13 @@ export default function DayTripBookingModal({
       style={{ zIndex: 9999 }}
     >
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/80" 
-        onClick={onClose} 
-      />
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
 
       {/* Modal */}
       <div 
-        className="relative w-full max-w-md mx-4"
-        style={{
-          backgroundColor: "#f8f5f0",
-          animation: "fadeIn 0.3s ease-out",
-        }}
+        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
+        style={{ backgroundColor: "#f8f5f0" }}
       >
-        <style jsx>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
-
         {/* Close button */}
         <button
           onClick={onClose}
@@ -332,65 +499,51 @@ export default function DayTripBookingModal({
         {/* Step 1: Date & Guests */}
         {step === 1 && (
           <div className="p-10">
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-foreground/40 mb-2">
               Step 1 of 4
             </p>
             <h2 className="font-serif text-2xl mb-8">{tripTitle}</h2>
 
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs tracking-[0.1em] uppercase text-muted-foreground mb-3">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={tripDate}
-                  min={minDateStr}
-                  onChange={(e) => setTripDate(e.target.value)}
-                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Minimum 48 hours notice required
-                </p>
-              </div>
+            {/* Calendar */}
+            <Calendar
+              selectedDate={tripDate}
+              onSelectDate={setTripDate}
+              minDaysFromNow={2}
+            />
 
-              <div>
-                <label className="block text-xs tracking-[0.1em] uppercase text-muted-foreground mb-3">
-                  Guests
-                </label>
-                <div className="flex gap-3">
-                  {[1, 2].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setGuests(num)}
-                      className={`flex-1 py-3 border text-sm transition-colors ${
-                        guests === num
-                          ? "border-foreground bg-foreground text-white"
-                          : "border-foreground/20 hover:border-foreground"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+            {/* Guests selector */}
+            <QuantitySelector
+              label="Guests"
+              value={guests}
+              min={1}
+              max={2}
+              onChange={setGuests}
+              note="Price is per car, up to 2 guests"
+            />
+
+            {/* Price summary */}
+            {canProceedStep1 && (
+              <div className="mt-8 pt-6 border-t border-foreground/10">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-foreground/50">{formatDate(tripDate)}</p>
+                  </div>
+                  <p className="text-2xl font-serif">€{basePriceEUR}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Price is per car, up to 2 guests
-                </p>
               </div>
-            </div>
+            )}
 
-            <div className="mt-10 pt-6 border-t border-foreground/10 flex justify-between items-center">
-              <div>
-                <p className="text-2xl font-serif">€{basePriceEUR}</p>
-              </div>
+            {/* Navigation */}
+            <div className="mt-8 flex justify-end">
               <button
                 onClick={() => setStep(2)}
                 disabled={!canProceedStep1}
-                className={`flex items-center gap-2 text-xs tracking-[0.15em] uppercase transition-opacity ${
-                  canProceedStep1 ? "hover:opacity-60" : "opacity-30 cursor-not-allowed"
-                }`}
+                className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-60 transition-opacity"
               >
-                Continue <ChevronRight className="w-4 h-4" />
+                Continue
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="5,2 10,7 5,12" />
+                </svg>
               </button>
             </div>
           </div>
@@ -399,7 +552,7 @@ export default function DayTripBookingModal({
         {/* Step 2: Add-ons */}
         {step === 2 && (
           <div className="p-10">
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-foreground/40 mb-2">
               Step 2 of 4
             </p>
             <h2 className="font-serif text-2xl mb-8">Enhance Your Day</h2>
@@ -433,21 +586,33 @@ export default function DayTripBookingModal({
               <p className="text-muted-foreground">No add-ons available for this tour.</p>
             )}
 
-            <div className="mt-10 pt-6 border-t border-foreground/10 flex justify-between items-center">
+            {/* Price summary */}
+            <div className="mt-8 pt-6 border-t border-foreground/10">
+              <div className="flex justify-between items-center">
+                <span className="text-foreground/50 text-sm">Total</span>
+                <p className="text-2xl font-serif">€{totalEUR}</p>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="mt-8 flex justify-between">
               <button
                 onClick={() => setStep(1)}
                 className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
               >
-                <ChevronLeft className="w-4 h-4" /> Back
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="9,2 4,7 9,12" />
+                </svg>
+                Back
               </button>
-              <div className="text-right">
-                <p className="text-2xl font-serif">€{totalEUR}</p>
-              </div>
               <button
                 onClick={() => setStep(3)}
                 className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
               >
-                Continue <ChevronRight className="w-4 h-4" />
+                Continue
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="5,2 10,7 5,12" />
+                </svg>
               </button>
             </div>
           </div>
@@ -456,64 +621,89 @@ export default function DayTripBookingModal({
         {/* Step 3: Details */}
         {step === 3 && (
           <div className="p-10">
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-foreground/40 mb-2">
               Step 3 of 4
             </p>
             <h2 className="font-serif text-2xl mb-8">Your Details</h2>
 
-            <div className="space-y-5">
-              <input
-                type="text"
-                placeholder="Full name"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
-                className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
-              />
-              <input
-                type="tel"
-                placeholder="Phone (optional)"
-                value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
-              />
-              <input
-                type="text"
-                placeholder="Pickup location (hotel/riad name)"
-                value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
-                className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
-              />
-              <textarea
-                placeholder="Special requests (optional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent resize-none"
-              />
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-2">
+                  Phone (optional)
+                </label>
+                <input
+                  type="tel"
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-2">
+                  Pickup Location (hotel/riad name)
+                </label>
+                <input
+                  type="text"
+                  value={pickupLocation}
+                  onChange={(e) => setPickupLocation(e.target.value)}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-[0.2em] uppercase text-foreground/40 mb-2">
+                  Special Requests (optional)
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent resize-none"
+                />
+              </div>
             </div>
 
-            <div className="mt-10 pt-6 border-t border-foreground/10 flex justify-between items-center">
+            {/* Navigation */}
+            <div className="mt-8 flex justify-between">
               <button
                 onClick={() => setStep(2)}
                 className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
               >
-                <ChevronLeft className="w-4 h-4" /> Back
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="9,2 4,7 9,12" />
+                </svg>
+                Back
               </button>
               <button
                 onClick={() => setStep(4)}
                 disabled={!canProceedStep3}
-                className={`flex items-center gap-2 text-xs tracking-[0.15em] uppercase transition-opacity ${
-                  canProceedStep3 ? "hover:opacity-60" : "opacity-30 cursor-not-allowed"
-                }`}
+                className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-60 transition-opacity"
               >
-                Continue <ChevronRight className="w-4 h-4" />
+                Continue
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polyline points="5,2 10,7 5,12" />
+                </svg>
               </button>
             </div>
           </div>
@@ -522,47 +712,48 @@ export default function DayTripBookingModal({
         {/* Step 4: Payment */}
         {step === 4 && (
           <div className="p-10">
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-foreground/40 mb-2">
               Step 4 of 4
             </p>
             <h2 className="font-serif text-2xl mb-8">Payment</h2>
 
             {/* Summary */}
-            <div className="mb-8 pb-6 border-b border-foreground/10">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{tripTitle}</span>
+            <div className="bg-foreground/[0.03] p-6 mb-6">
+              <p className="font-serif text-lg mb-2">{tripTitle}</p>
+              <p className="text-sm text-foreground/50 mb-4">{formatDate(tripDate)}</p>
+              
+              <div className="space-y-2 pt-4 border-t border-foreground/10">
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/50">Day trip ({guests} guest{guests > 1 ? "s" : ""})</span>
                   <span>€{basePriceEUR}</span>
                 </div>
                 {selectedAddons.map((addonId) => {
                   const addon = addons.find((a) => a.id === addonId);
                   if (!addon) return null;
                   return (
-                    <div key={addonId} className="flex justify-between">
-                      <span className="text-muted-foreground">{addon.name} × {guests}</span>
+                    <div key={addonId} className="flex justify-between text-sm">
+                      <span className="text-foreground/50">{addon.name} × {guests}</span>
                       <span>€{addon.priceEUR * guests}</span>
                     </div>
                   );
                 })}
-              </div>
-              <div className="flex justify-between mt-4 pt-4 border-t border-foreground/10">
-                <span className="font-medium">Total</span>
-                <span className="font-serif text-xl">€{totalEUR}</span>
+                <div className="flex justify-between text-base pt-3 border-t border-foreground/10 mt-3">
+                  <span className="font-medium">Total</span>
+                  <span className="font-serif text-xl">€{totalEUR}</span>
+                </div>
               </div>
             </div>
 
             {/* PayPal Button */}
             <PayPalButton
-              totalEUR={totalEUR}
-              tripTitle={tripTitle}
-              tripDate={tripDate}
-              guests={guests}
+              amount={totalEUR.toFixed(2)}
+              description={`${tripTitle} - ${formatDate(tripDate)}`}
               onSuccess={handlePaymentSuccess}
-              containerId={`paypal-daytrip-${tripSlug}`}
+              onError={handlePaymentError}
             />
 
             {isSubmitting && (
-              <p className="text-center text-sm text-muted-foreground mt-4">
+              <p className="text-center text-sm text-foreground/50 mt-4">
                 Processing...
               </p>
             )}
@@ -571,8 +762,16 @@ export default function DayTripBookingModal({
               onClick={() => setStep(3)}
               className="mt-6 flex items-center gap-2 text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
             >
-              <ChevronLeft className="w-4 h-4" /> Back
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="9,2 4,7 9,12" />
+              </svg>
+              Back
             </button>
+
+            {/* Contact link */}
+            <p className="text-center mt-6 text-[11px] text-foreground/30">
+              <a href="/contact" className="hover:text-foreground/50 transition-colors">Send us a note</a>
+            </p>
           </div>
         )}
       </div>
