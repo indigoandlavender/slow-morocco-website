@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronRight, ChevronLeft, Check } from "lucide-react";
 
 interface Addon {
@@ -27,6 +28,121 @@ declare global {
   }
 }
 
+// Isolated PayPal Button Component
+function PayPalButton({
+  totalEUR,
+  tripTitle,
+  tripDate,
+  guests,
+  onSuccess,
+  containerId,
+}: {
+  totalEUR: number;
+  tripTitle: string;
+  tripDate: string;
+  guests: number;
+  onSuccess: (transactionId: string) => void;
+  containerId: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonsInstance = useRef<any>(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+
+    const loadAndRender = async () => {
+      if (!containerRef.current || !isMounted.current) return;
+
+      // Load PayPal SDK if needed
+      if (!window.paypal) {
+        const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.src = `https://www.paypal.com/sdk/js?client-id=AWVf28iPmlVmaEyibiwkOtdXAl5UPqL9i8ee9yStaG6qb7hCwNRB2G95SYwbcikLnBox6CGyO-boyAvu&currency=EUR`;
+          script.async = true;
+          document.body.appendChild(script);
+          await new Promise((resolve) => {
+            script.onload = resolve;
+          });
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+
+      if (!window.paypal || !containerRef.current || !isMounted.current) return;
+
+      // Clear container
+      containerRef.current.innerHTML = "";
+
+      try {
+        buttonsInstance.current = window.paypal.Buttons({
+          style: {
+            layout: "vertical",
+            color: "black",
+            shape: "rect",
+            label: "pay",
+            height: 50,
+          },
+          createOrder: (_data: any, actions: any) => {
+            return actions.order.create({
+              purchase_units: [
+                {
+                  description: `${tripTitle} - ${tripDate} - ${guests} guest(s)`,
+                  amount: {
+                    value: totalEUR.toFixed(2),
+                    currency_code: "EUR",
+                  },
+                },
+              ],
+            });
+          },
+          onApprove: async (_data: any, actions: any) => {
+            const order = await actions.order.capture();
+            if (isMounted.current) {
+              onSuccess(order.id);
+            }
+          },
+          onError: (err: any) => {
+            console.error("PayPal error:", err);
+            if (isMounted.current) {
+              alert("Payment failed. Please try again.");
+            }
+          },
+        });
+
+        if (containerRef.current && isMounted.current) {
+          await buttonsInstance.current.render(containerRef.current);
+        }
+      } catch (err) {
+        console.error("PayPal render error:", err);
+      }
+    };
+
+    loadAndRender();
+
+    return () => {
+      isMounted.current = false;
+      if (buttonsInstance.current?.close) {
+        try {
+          buttonsInstance.current.close();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
+      buttonsInstance.current = null;
+    };
+  }, [totalEUR, tripTitle, tripDate, guests, onSuccess]);
+
+  return (
+    <div
+      ref={containerRef}
+      id={containerId}
+      className="min-h-[50px]"
+    />
+  );
+}
+
 export default function DayTripBookingModal({
   isOpen,
   onClose,
@@ -36,6 +152,7 @@ export default function DayTripBookingModal({
   basePriceEUR,
   addons,
 }: DayTripBookingModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [tripDate, setTripDate] = useState("");
   const [guests, setGuests] = useState(2);
@@ -45,10 +162,13 @@ export default function DayTripBookingModal({
   const [guestPhone, setGuestPhone] = useState("");
   const [pickupLocation, setPickupLocation] = useState("");
   const [notes, setNotes] = useState("");
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingId, setBookingId] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Calculate totals
   const addonsTotal = selectedAddons.reduce((sum, addonId) => {
@@ -74,71 +194,16 @@ export default function DayTripBookingModal({
     if (isOpen) {
       setStep(1);
       setBookingComplete(false);
+      setTripDate("");
+      setGuests(2);
+      setSelectedAddons([]);
+      setGuestName("");
+      setGuestEmail("");
+      setGuestPhone("");
+      setPickupLocation("");
+      setNotes("");
     }
   }, [isOpen]);
-
-  // Load PayPal SDK
-  useEffect(() => {
-    if (step === 4 && !paypalLoaded && typeof window !== "undefined") {
-      const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
-      if (existingScript) {
-        setPaypalLoaded(true);
-        setTimeout(renderPayPalButton, 100);
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = `https://www.paypal.com/sdk/js?client-id=AWVf28iPmlVmaEyibiwkOtdXAl5UPqL9i8ee9yStaG6qb7hCwNRB2G95SYwbcikLnBox6CGyO-boyAvu&currency=EUR`;
-      script.async = true;
-      script.onload = () => {
-        setPaypalLoaded(true);
-        renderPayPalButton();
-      };
-      document.body.appendChild(script);
-    } else if (step === 4 && paypalLoaded) {
-      setTimeout(renderPayPalButton, 100);
-    }
-  }, [step, paypalLoaded]);
-
-  const renderPayPalButton = () => {
-    const container = document.getElementById("paypal-button-container");
-    if (!container || !window.paypal) return;
-
-    container.innerHTML = "";
-
-    window.paypal
-      .Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'black',
-          shape: 'rect',
-          label: 'pay',
-          height: 50,
-        },
-        createOrder: (data: any, actions: any) => {
-          return actions.order.create({
-            purchase_units: [
-              {
-                description: `${tripTitle} - ${tripDate} - ${guests} guest(s)`,
-                amount: {
-                  value: totalEUR.toFixed(2),
-                  currency_code: "EUR",
-                },
-              },
-            ],
-          });
-        },
-        onApprove: async (data: any, actions: any) => {
-          const order = await actions.order.capture();
-          handlePaymentSuccess(order.id);
-        },
-        onError: (err: any) => {
-          console.error("PayPal error:", err);
-          alert("Payment failed. Please try again.");
-        },
-      })
-      .render("#paypal-button-container");
-  };
 
   const handlePaymentSuccess = async (transactionId: string) => {
     setIsSubmitting(true);
@@ -197,18 +262,40 @@ export default function DayTripBookingModal({
   };
 
   const canProceedStep1 = tripDate && guests;
-  const canProceedStep2 = true;
   const canProceedStep3 = guestName.trim() && guestEmail.trim() && pickupLocation.trim();
 
+  // Don't render on server
+  if (!mounted) return null;
+
+  // Keep modal in DOM but hidden when closed
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex: 9999 }}
+    >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div 
+        className="absolute inset-0 bg-black/80" 
+        onClick={onClose} 
+      />
 
       {/* Modal */}
-      <div className="relative bg-background w-full max-w-md mx-4">
+      <div 
+        className="relative w-full max-w-md mx-4"
+        style={{
+          backgroundColor: "#f8f5f0",
+          animation: "fadeIn 0.3s ease-out",
+        }}
+      >
+        <style jsx>{`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+
         {/* Close button */}
         <button
           onClick={onClose}
@@ -223,18 +310,19 @@ export default function DayTripBookingModal({
             <div className="w-16 h-16 border border-foreground rounded-full flex items-center justify-center mx-auto mb-8">
               <Check className="w-8 h-8" />
             </div>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-3">
-              Booking Confirmed
+            <h2 className="font-serif text-2xl mb-4">Booking Confirmed</h2>
+            <p className="text-muted-foreground mb-2">
+              Thank you, {guestName.split(" ")[0]}!
             </p>
-            <h2 className="font-serif text-2xl mb-2">{tripTitle}</h2>
-            <p className="text-muted-foreground mb-6">{tripDate}</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Confirmation #{bookingId}
+            </p>
             <p className="text-sm text-muted-foreground mb-8">
-              Reference: {bookingId}<br />
-              Confirmation sent to {guestEmail}
+              Check your email at {guestEmail} for details.
             </p>
             <button
               onClick={onClose}
-              className="w-full py-4 bg-foreground text-background text-xs tracking-[0.15em] uppercase hover:opacity-90 transition-opacity"
+              className="text-xs tracking-[0.15em] uppercase border-b border-foreground pb-1 hover:opacity-60 transition-opacity"
             >
               Close
             </button>
@@ -257,10 +345,13 @@ export default function DayTripBookingModal({
                 <input
                   type="date"
                   value={tripDate}
-                  onChange={(e) => setTripDate(e.target.value)}
                   min={minDateStr}
-                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent text-lg"
+                  onChange={(e) => setTripDate(e.target.value)}
+                  className="w-full border-b border-foreground/20 pb-3 focus:outline-none focus:border-foreground bg-transparent"
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Minimum 48 hours notice required
+                </p>
               </div>
 
               <div>
@@ -274,7 +365,7 @@ export default function DayTripBookingModal({
                       onClick={() => setGuests(num)}
                       className={`flex-1 py-3 border text-sm transition-colors ${
                         guests === num
-                          ? "border-foreground bg-foreground text-background"
+                          ? "border-foreground bg-foreground text-white"
                           : "border-foreground/20 hover:border-foreground"
                       }`}
                     >
@@ -461,13 +552,14 @@ export default function DayTripBookingModal({
             </div>
 
             {/* PayPal Button */}
-            <div id="paypal-button-container" className="min-h-[50px]">
-              {!paypalLoaded && (
-                <div className="flex justify-center py-6">
-                  <div className="w-5 h-5 border border-foreground/20 border-t-foreground rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
+            <PayPalButton
+              totalEUR={totalEUR}
+              tripTitle={tripTitle}
+              tripDate={tripDate}
+              guests={guests}
+              onSuccess={handlePaymentSuccess}
+              containerId={`paypal-daytrip-${tripSlug}`}
+            />
 
             {isSubmitting && (
               <p className="text-center text-sm text-muted-foreground mt-4">
@@ -486,4 +578,6 @@ export default function DayTripBookingModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
