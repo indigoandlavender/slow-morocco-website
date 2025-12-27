@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { getPlaces, getPlaceBySlug, getPlaceImages, getDestinationBySlug } from '@/lib/sheets';
 import PlaceBody from '@/components/PlaceBody';
 import Gallery from '@/components/Gallery';
+import RelatedJourneys from '@/components/RelatedJourneys';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -252,6 +253,12 @@ export default async function PlacePage({ params }: PageProps) {
             </div>
           </>
         )}
+
+        {/* Related Journeys */}
+        <RelatedJourneys 
+          destination={place.destination}
+          currentPlaceTitle={place.title}
+        />
 
         {/* Back Link */}
         <div className="mt-12">
