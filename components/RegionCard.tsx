@@ -10,7 +10,7 @@ export default function RegionCard({ region }: RegionCardProps) {
   return (
     <Link href={`/places/${region.slug}`} className="group block">
       {/* Image */}
-      <div className="relative aspect-[4/3] mb-4 overflow-hidden bg-foreground/5">
+      <div className="relative aspect-[4/5] mb-4 overflow-hidden bg-foreground/5">
         {region.heroImage ? (
           <Image
             src={region.heroImage}
