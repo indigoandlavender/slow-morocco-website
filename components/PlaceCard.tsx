@@ -7,11 +7,6 @@ interface PlaceCardProps {
 }
 
 export default function PlaceCard({ place }: PlaceCardProps) {
-  // Parse regions (comma-separated)
-  const regions = place.region 
-    ? place.region.split(',').map(r => r.trim()) 
-    : [];
-
   return (
     <Link href={`/place/${place.slug}`} className="group block">
       {/* Image */}
@@ -30,25 +25,25 @@ export default function PlaceCard({ place }: PlaceCardProps) {
 
       {/* Content */}
       <div>
-        {regions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
-            {regions.map((region) => (
-              <span 
-                key={region} 
-                className="text-xs uppercase tracking-wide text-foreground/50"
-              >
-                {region}
-              </span>
-            ))}
-          </div>
+        {place.category && (
+          <span className="text-xs uppercase tracking-wide text-foreground/50 mb-2 block">
+            {place.category}
+          </span>
         )}
         <h3 className="font-display text-xl text-foreground mb-2 group-hover:text-olive transition-colors">
           {place.title}
         </h3>
-        {place.subtitle && (
+        {place.excerpt && (
           <p className="text-sm text-foreground/60 line-clamp-2">
-            {place.subtitle}
+            {place.excerpt}
           </p>
+        )}
+        {/* Practical info preview */}
+        {(place.fees || place.opening_hours) && (
+          <div className="mt-3 text-xs text-foreground/50 space-y-1">
+            {place.fees && <p>{place.fees}</p>}
+            {place.opening_hours && <p>{place.opening_hours}</p>}
+          </div>
         )}
       </div>
     </Link>

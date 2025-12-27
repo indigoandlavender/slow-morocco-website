@@ -319,29 +319,133 @@ export async function unsubscribeFromNewsletter(
 }
 
 // ============================================
-// PLACES SYSTEM
+// PLACES SYSTEM (3-level hierarchy)
 // ============================================
 
-export interface Place {
+// Level 1: Regions (Cities, Mountains, Coastal, Desert)
+export interface Region {
   slug: string;
   title: string;
   subtitle: string;
-  category: string;
+  heroImage: string;
+  description: string;
+  order: string;
+}
+
+export async function getRegions(): Promise<Region[]> {
+  try {
+    const sheets = getGoogleSheetsClient();
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: 'Regions!A:F',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) return [];
+
+    const headers = rows[0];
+    const regions = rows.slice(1).map((row: any[]) => {
+      const region: Record<string, string> = {};
+      headers.forEach((header: string, index: number) => {
+        region[header] = row[index] || '';
+      });
+      return region as unknown as Region;
+    });
+
+    return regions.sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+  } catch (error) {
+    console.error('Error fetching regions:', error);
+    return [];
+  }
+}
+
+export async function getRegionBySlug(slug: string): Promise<Region | null> {
+  const regions = await getRegions();
+  return regions.find((r) => r.slug === slug) || null;
+}
+
+// Level 2: Destinations (Marrakech, Fes, etc. - containers)
+export interface Destination {
+  slug: string;
+  title: string;
+  subtitle: string;
   region: string;
-  address: string;
-  opening_hours: string;
-  fees: string;
   heroImage: string;
   heroCaption: string;
   excerpt: string;
   body: string;
-  readTime: string;
-  year: string;
-  textBy: string;
-  imagesBy: string;
+  published: string;
+  featured: string;
+  order: string;
+}
+
+export async function getDestinations(): Promise<Destination[]> {
+  try {
+    const sheets = getGoogleSheetsClient();
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: 'Destinations!A:K',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) return [];
+
+    const headers = rows[0];
+    const destinations = rows.slice(1).map((row: any[]) => {
+      const dest: Record<string, string> = {};
+      headers.forEach((header: string, index: number) => {
+        let value = row[index] || '';
+        if (typeof value === 'string') {
+          value = value.replace(/<br>/g, '\n');
+        }
+        dest[header] = value;
+      });
+      return dest as unknown as Destination;
+    });
+
+    return destinations.filter((d) => {
+      const pub = String(d.published || '').toLowerCase().trim();
+      return pub === 'true' || pub === 'yes' || pub === '1';
+    });
+  } catch (error) {
+    console.error('Error fetching destinations:', error);
+    return [];
+  }
+}
+
+export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
+  const destinations = await getDestinations();
+  return destinations.find((d) => d.slug === slug) || null;
+}
+
+export async function getDestinationsByRegion(regionSlug: string): Promise<Destination[]> {
+  const destinations = await getDestinations();
+  return destinations
+    .filter((d) => {
+      const regions = d.region.split(',').map(r => r.trim().toLowerCase());
+      return regions.includes(regionSlug.toLowerCase());
+    })
+    .sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+}
+
+// Level 3: Places (Palais Bahia, Jardin Majorelle - actual attractions)
+export interface Place {
+  slug: string;
+  title: string;
+  destination: string;
+  category: string;
+  address: string;
+  opening_hours: string;
+  fees: string;
+  notes: string;
+  heroImage: string;
+  heroCaption: string;
+  excerpt: string;
+  body: string;
   sources: string;
-  tags?: string;
-  notes?: string;
+  tags: string;
   published: string;
   featured: string;
   order: string;
@@ -353,7 +457,7 @@ export async function getPlaces(): Promise<Place[]> {
     
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Places!A:V',
+      range: 'Places!A:Q',
     });
 
     const rows = response.data.values;
@@ -372,8 +476,8 @@ export async function getPlaces(): Promise<Place[]> {
       return place as unknown as Place;
     });
 
-    return places.filter((place) => {
-      const pub = String(place.published || '').toLowerCase().trim();
+    return places.filter((p) => {
+      const pub = String(p.published || '').toLowerCase().trim();
       return pub === 'true' || pub === 'yes' || pub === '1';
     });
   } catch (error) {
@@ -384,14 +488,21 @@ export async function getPlaces(): Promise<Place[]> {
 
 export async function getPlaceBySlug(slug: string): Promise<Place | null> {
   const places = await getPlaces();
-  return places.find((place) => place.slug === slug) || null;
+  return places.find((p) => p.slug === slug) || null;
+}
+
+export async function getPlacesByDestination(destinationSlug: string): Promise<Place[]> {
+  const places = await getPlaces();
+  return places
+    .filter((p) => p.destination.toLowerCase() === destinationSlug.toLowerCase())
+    .sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
 }
 
 export async function getFeaturedPlaces(): Promise<Place[]> {
   const places = await getPlaces();
   return places
-    .filter((place) => {
-      const featured = String(place.featured || '').toLowerCase().trim();
+    .filter((p) => {
+      const featured = String(p.featured || '').toLowerCase().trim();
       return featured === 'true' || featured === 'yes' || featured === '1';
     })
     .sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
