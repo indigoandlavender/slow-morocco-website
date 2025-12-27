@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { getPlaces, getPlaceBySlug, getPlaceImages } from '@/lib/sheets';
+import { getPlaces, getPlaceBySlug, getPlaceImages, getDestinationBySlug } from '@/lib/sheets';
 import PlaceBody from '@/components/PlaceBody';
 import Gallery from '@/components/Gallery';
 
@@ -25,14 +25,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!place) return { title: 'Place Not Found' };
   
   const title = `${place.title} | Slow Morocco`;
-  const description = place.excerpt || place.subtitle || `Discover ${place.title} with Slow Morocco.`;
+  const description = place.excerpt || `Visit ${place.title} in Morocco. ${place.opening_hours ? `Open ${place.opening_hours}.` : ''} ${place.fees ? `Entry: ${place.fees}.` : ''}`;
   const url = `${siteUrl}/place/${place.slug}`;
   
   return {
     title: place.title,
     description,
     keywords: place.tags ? place.tags.split(',').map(t => t.trim()) : undefined,
-    authors: place.textBy ? [{ name: place.textBy }] : undefined,
     openGraph: {
       title,
       description,
@@ -40,9 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: 'Slow Morocco',
       locale: 'en_GB',
       type: 'article',
-      authors: place.textBy ? [place.textBy] : undefined,
       section: place.category || 'Places',
-      publishedTime: place.year ? `${place.year}-01-01` : undefined,
       images: place.heroImage ? [
         {
           url: place.heroImage,
@@ -72,46 +69,36 @@ export default async function PlacePage({ params }: PageProps) {
   }
 
   const galleryImages = await getPlaceImages(params.slug);
+  
+  // Get parent destination for breadcrumb
+  const destination = await getDestinationBySlug(place.destination);
+  const destinationTitle = destination?.title || place.destination;
+  
+  // Get region from destination
+  const regions = destination?.region?.split(',').map(r => r.trim().toLowerCase()) || [];
+  const primaryRegion = regions[0] || 'cities';
+  const regionTitle = primaryRegion.charAt(0).toUpperCase() + primaryRegion.slice(1);
 
   // Parse sources (separated by ;;)
   const sources = place.sources
     ? place.sources.split(';;').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  // Calculate word count for schema
-  const wordCount = place.body ? place.body.split(/\s+/).length : 0;
-  
-  // Parse read time for schema (e.g., "14 min read" -> "PT14M")
-  const readTimeMatch = place.readTime?.match(/(\d+)/);
-  const readTimeISO = readTimeMatch ? `PT${readTimeMatch[1]}M` : undefined;
-
-  // Article Schema
-  const articleSchema = {
+  // TouristAttraction Schema
+  const attractionSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: place.title,
-    description: place.excerpt || place.subtitle,
+    '@type': 'TouristAttraction',
+    name: place.title,
+    description: place.excerpt,
     image: place.heroImage || undefined,
-    author: place.textBy ? {
-      '@type': 'Person',
-      name: place.textBy,
+    url: `${siteUrl}/place/${place.slug}`,
+    address: place.address ? {
+      '@type': 'PostalAddress',
+      streetAddress: place.address,
+      addressCountry: 'MA',
     } : undefined,
-    publisher: {
-      '@type': 'Organization',
-      name: 'Slow Morocco',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${siteUrl}/favicon.svg`,
-      },
-    },
-    datePublished: place.year ? `${place.year}-01-01` : undefined,
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': `${siteUrl}/place/${place.slug}`,
-    },
-    articleSection: place.category || 'Places',
-    wordCount: wordCount > 0 ? wordCount : undefined,
-    timeRequired: readTimeISO,
+    openingHours: place.opening_hours || undefined,
+    isAccessibleForFree: place.fees?.toLowerCase() === 'free' ? true : undefined,
   };
 
   // Breadcrumb Schema
@@ -134,6 +121,18 @@ export default async function PlacePage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         position: 3,
+        name: regionTitle,
+        item: `${siteUrl}/places/${primaryRegion}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: destinationTitle,
+        item: `${siteUrl}/destination/${place.destination}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 5,
         name: place.title,
         item: `${siteUrl}/place/${place.slug}`,
       },
@@ -145,7 +144,7 @@ export default async function PlacePage({ params }: PageProps) {
       {/* Schema Markup */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(attractionSchema) }}
       />
       <script
         type="application/ld+json"
@@ -176,52 +175,52 @@ export default async function PlacePage({ params }: PageProps) {
       <article className="max-w-3xl mx-auto px-6 py-16">
         {/* Breadcrumb Navigation */}
         <nav className="text-sm text-foreground/50 mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2">
+          <ol className="flex items-center gap-2 flex-wrap">
             <li><Link href="/" className="hover:text-olive transition-colors">Home</Link></li>
             <li>/</li>
             <li><Link href="/places" className="hover:text-olive transition-colors">Places</Link></li>
+            <li>/</li>
+            <li><Link href={`/places/${primaryRegion}`} className="hover:text-olive transition-colors">{regionTitle}</Link></li>
+            <li>/</li>
+            <li><Link href={`/destination/${place.destination}`} className="hover:text-olive transition-colors">{destinationTitle}</Link></li>
             <li>/</li>
             <li className="text-foreground/70">{place.title}</li>
           </ol>
         </nav>
 
-        {/* Meta */}
-        <div className="flex items-center gap-3 text-sm text-foreground/50 mb-6">
-          {place.category && (
-            <>
-              <span className="uppercase tracking-wide">{place.category}</span>
-              <span>·</span>
-            </>
-          )}
-          {place.readTime && <span>{place.readTime}</span>}
-        </div>
+        {/* Category */}
+        {place.category && (
+          <span className="text-xs uppercase tracking-wide text-foreground/50 mb-4 block">
+            {place.category}
+          </span>
+        )}
 
         {/* Title */}
         <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
           {place.title}
         </h1>
 
-        {/* Subtitle */}
-        {place.subtitle && (
+        {/* Excerpt */}
+        {place.excerpt && (
           <p className="text-xl text-foreground/70 italic mb-8">
-            {place.subtitle}
+            {place.excerpt}
           </p>
         )}
 
         {/* Practical Info */}
         {(place.address || place.opening_hours || place.fees || place.notes) && (
-          <div className="text-sm text-foreground/70 space-y-2 mb-8">
+          <div className="bg-sand/50 p-6 mb-8 space-y-2 text-sm">
             {place.address && (
-              <p><span className="text-foreground/50">Location:</span> {place.address}</p>
+              <p><span className="font-medium">Location:</span> {place.address}</p>
             )}
             {place.opening_hours && (
-              <p><span className="text-foreground/50">Hours:</span> {place.opening_hours}</p>
+              <p><span className="font-medium">Hours:</span> {place.opening_hours}</p>
             )}
             {place.fees && (
-              <p><span className="text-foreground/50">Entry:</span> {place.fees}</p>
+              <p><span className="font-medium">Entry:</span> {place.fees}</p>
             )}
             {place.notes && (
-              <p><span className="text-foreground/50">Note:</span> {place.notes}</p>
+              <p><span className="font-medium">Note:</span> {place.notes}</p>
             )}
           </div>
         )}
@@ -254,24 +253,16 @@ export default async function PlacePage({ params }: PageProps) {
           </>
         )}
 
-        {/* Footer */}
-        <hr className="border-foreground/10 my-12" />
-        <footer className="text-sm text-foreground/50 flex flex-wrap gap-x-4 gap-y-1">
-          {place.textBy && <span>Text — {place.textBy}</span>}
-          {place.imagesBy && <span>Images — {place.imagesBy}</span>}
-          {place.year && <span>{place.year}</span>}
-        </footer>
-
         {/* Back Link */}
         <div className="mt-12">
           <Link
-            href="/places"
+            href={`/destination/${place.destination}`}
             className="inline-flex items-center gap-2 text-sm text-foreground/60 hover:text-olive transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <polyline points="10,3 5,8 10,13" />
             </svg>
-            All Places
+            Back to {destinationTitle}
           </Link>
         </div>
       </article>
