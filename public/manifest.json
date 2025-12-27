@@ -1,0 +1,17 @@
+{
+  "name": "Slow Morocco",
+  "short_name": "Slow Morocco",
+  "description": "Thoughtful private journeys across Morocco — designed for travellers who prefer depth over speed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
