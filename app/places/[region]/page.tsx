@@ -153,7 +153,7 @@ export default async function RegionPage({ params }: PageProps) {
       </section>
 
       {/* Destinations Grid */}
-      <section className="px-6 pb-24">
+      <section className="px-6 pt-16 pb-24">
         <div className="max-w-6xl mx-auto">
           {destinations.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

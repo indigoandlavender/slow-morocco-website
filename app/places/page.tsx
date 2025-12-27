@@ -70,7 +70,7 @@ export default async function PlacesPage() {
       </section>
 
       {/* Regions Grid */}
-      <section className="px-6 pb-24">
+      <section className="px-6 pt-16 pb-24">
         <div className="max-w-5xl mx-auto">
           {regions.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">

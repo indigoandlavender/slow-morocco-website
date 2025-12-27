@@ -202,9 +202,9 @@ export default async function DestinationPage({ params }: PageProps) {
 
       {/* Places in this Destination */}
       {places.length > 0 && (
-        <section className="px-6 pb-24">
+        <section className="px-6 pt-16 pb-24">
           <div className="max-w-6xl mx-auto">
-            <h2 className="font-display text-2xl md:text-3xl text-foreground mb-8 text-center">
+            <h2 className="font-display text-2xl md:text-3xl text-foreground mb-12 text-center">
               Places in {destination.title}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
