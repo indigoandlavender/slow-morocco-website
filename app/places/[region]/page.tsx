@@ -138,12 +138,12 @@ export default async function RegionPage({ params }: PageProps) {
           </nav>
 
           <div className="text-center">
-            <h1 className="font-display text-4xl md:text-5xl text-foreground mb-6">
-              {region.title}
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-[0.3em] text-foreground mb-6 uppercase">
+              {region.title.split('').join(' ')}
             </h1>
-            {region.description && (
+            {region.subtitle && (
               <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
-                {region.description}
+                {region.subtitle}
               </p>
             )}
           </div>

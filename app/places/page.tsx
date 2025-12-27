@@ -63,8 +63,8 @@ export default async function PlacesPage() {
       {/* Header */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-display text-4xl md:text-5xl text-foreground mb-6">
-            Places
+          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-[0.3em] text-foreground mb-6">
+            P L A C E S
           </h1>
           <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
             Morocco by region. Choose your landscape.
