@@ -25,11 +25,17 @@ export default function RelatedJourneys({ destination, currentPlaceTitle }: Rela
   useEffect(() => {
     async function fetchJourneys() {
       try {
+        console.log("[RelatedJourneys] Fetching for destination:", destination);
         const res = await fetch("/api/journeys");
-        if (!res.ok) return;
+        if (!res.ok) {
+          console.log("[RelatedJourneys] API error:", res.status);
+          return;
+        }
         
         const data = await res.json();
         const allJourneys = data.journeys || [];
+        console.log("[RelatedJourneys] Total journeys:", allJourneys.length);
+        console.log("[RelatedJourneys] First journey destinations field:", allJourneys[0]?.destinations);
         
         // Filter journeys that include this destination
         const related = allJourneys.filter((journey: Journey) => {
@@ -37,6 +43,8 @@ export default function RelatedJourneys({ destination, currentPlaceTitle }: Rela
           const dests = journey.destinations.split(",").map((d: string) => d.trim().toLowerCase());
           return dests.includes(destination.toLowerCase());
         });
+        
+        console.log("[RelatedJourneys] Matching journeys:", related.length);
         
         // Max 2 journeys
         setJourneys(related.slice(0, 2));
