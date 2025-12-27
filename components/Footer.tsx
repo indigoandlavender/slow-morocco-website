@@ -131,11 +131,12 @@ const defaultFooterData: FooterData = {
     },
     {
       number: 2,
-      title: "About Us",
+      title: "Places",
       links: [
-        { order: 1, label: "What We Offer", href: "/about", type: "link" },
-        { order: 2, label: "Our Guides", href: "/guides", type: "link" },
-        { order: 3, label: "Contact Us", href: "/contact", type: "link" },
+        { order: 1, label: "Cities", href: "/places/cities", type: "link" },
+        { order: 2, label: "Mountains", href: "/places/mountains", type: "link" },
+        { order: 3, label: "Coast", href: "/places/coast", type: "link" },
+        { order: 4, label: "Desert", href: "/places/desert", type: "link" },
       ],
     },
     {
@@ -144,8 +145,11 @@ const defaultFooterData: FooterData = {
       links: [
         { order: 1, label: "All Journeys", href: "/journeys", type: "link" },
         { order: 2, label: "Plan Your Trip", href: "/plan-your-trip", type: "link" },
-        { order: 3, label: "What's Included", href: "/whats-included", type: "link" },
-        { order: 4, label: "FAQ", href: "/faq", type: "link" },
+        { order: 3, label: "Day Trips", href: "/day-trips", type: "link" },
+        { order: 4, label: "What's Included", href: "/whats-included", type: "link" },
+        { order: 5, label: "FAQ", href: "/faq", type: "link" },
+        { order: 6, label: "About Us", href: "/about", type: "link" },
+        { order: 7, label: "Contact Us", href: "/contact", type: "link" },
       ],
     },
     {
