@@ -123,11 +123,24 @@ export default async function RegionPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
 
-      {/* Header */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <nav className="text-sm text-foreground/50 mb-8" aria-label="Breadcrumb">
+      {/* Hero Header */}
+      <section className="pt-32 pb-20 md:pt-40 md:pb-28 bg-muted">
+        <div className="container mx-auto px-6 lg:px-16 text-center">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl tracking-[0.3em] font-light uppercase">
+            {region.title.split('').join(' ')}
+          </h1>
+          {region.subtitle && (
+            <p className="text-foreground/60 mt-6 text-lg">
+              {region.subtitle}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Breadcrumb */}
+      <section className="py-6 border-b border-border">
+        <div className="container mx-auto px-6 lg:px-16">
+          <nav className="text-sm text-foreground/50" aria-label="Breadcrumb">
             <ol className="flex items-center gap-2">
               <li><Link href="/" className="hover:text-olive transition-colors">Home</Link></li>
               <li>/</li>
@@ -136,17 +149,6 @@ export default async function RegionPage({ params }: PageProps) {
               <li className="text-foreground/70">{region.title}</li>
             </ol>
           </nav>
-
-          <div className="text-center">
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-[0.3em] text-foreground mb-6 uppercase">
-              {region.title.split('').join(' ')}
-            </h1>
-            {region.subtitle && (
-              <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
-                {region.subtitle}
-              </p>
-            )}
-          </div>
         </div>
       </section>
 

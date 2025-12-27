@@ -60,15 +60,12 @@ export default async function PlacesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      {/* Header */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-[0.3em] text-foreground mb-6">
+      {/* Hero Header */}
+      <section className="pt-32 pb-20 md:pt-40 md:pb-28 bg-muted">
+        <div className="container mx-auto px-6 lg:px-16 text-center">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl tracking-[0.3em] font-light">
             P L A C E S
           </h1>
-          <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
-            Morocco by region. Choose your landscape.
-          </p>
         </div>
       </section>
 

@@ -132,8 +132,8 @@ export default async function DestinationPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(placeSchema) }}
       />
 
-      {/* Hero Image */}
-      {destination.heroImage && (
+      {/* Hero Header */}
+      {destination.heroImage ? (
         <section className="relative w-full h-[60vh] md:h-[70vh]">
           <Image
             src={destination.heroImage}
@@ -142,50 +142,63 @@ export default async function DestinationPage({ params }: PageProps) {
             className="object-cover"
             priority
           />
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl tracking-[0.3em] font-light text-white uppercase">
+              {destination.title.split('').join(' ')}
+            </h1>
+            {destination.subtitle && (
+              <p className="text-white/80 mt-6 text-lg">
+                {destination.subtitle}
+              </p>
+            )}
+          </div>
           {destination.heroCaption && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-              <p className="text-white/80 text-sm max-w-4xl mx-auto">
+              <p className="text-white/70 text-sm max-w-4xl mx-auto">
                 {destination.heroCaption}
               </p>
             </div>
           )}
         </section>
+      ) : (
+        <section className="pt-32 pb-20 md:pt-40 md:pb-28 bg-muted">
+          <div className="container mx-auto px-6 lg:px-16 text-center">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl tracking-[0.3em] font-light uppercase">
+              {destination.title.split('').join(' ')}
+            </h1>
+            {destination.subtitle && (
+              <p className="text-foreground/60 mt-6 text-lg">
+                {destination.subtitle}
+              </p>
+            )}
+          </div>
+        </section>
       )}
 
-      {/* Article Header */}
-      <article className="max-w-3xl mx-auto px-6 py-16">
-        {/* Breadcrumb Navigation */}
-        <nav className="text-sm text-foreground/50 mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2 flex-wrap">
-            <li><Link href="/" className="hover:text-olive transition-colors">Home</Link></li>
-            <li>/</li>
-            <li><Link href="/places" className="hover:text-olive transition-colors">Places</Link></li>
-            <li>/</li>
-            <li><Link href={`/places/${primaryRegion}`} className="hover:text-olive transition-colors">{regionTitle}</Link></li>
-            <li>/</li>
-            <li className="text-foreground/70">{destination.title}</li>
-          </ol>
-        </nav>
+      {/* Breadcrumb */}
+      <section className="py-6 border-b border-border">
+        <div className="container mx-auto px-6 lg:px-16">
+          <nav className="text-sm text-foreground/50" aria-label="Breadcrumb">
+            <ol className="flex items-center gap-2 flex-wrap">
+              <li><Link href="/" className="hover:text-olive transition-colors">Home</Link></li>
+              <li>/</li>
+              <li><Link href="/places" className="hover:text-olive transition-colors">Places</Link></li>
+              <li>/</li>
+              <li><Link href={`/places/${primaryRegion}`} className="hover:text-olive transition-colors">{regionTitle}</Link></li>
+              <li>/</li>
+              <li className="text-foreground/70">{destination.title}</li>
+            </ol>
+          </nav>
+        </div>
+      </section>
 
-        {/* Title */}
-        <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mb-4 leading-tight">
-          {destination.title}
-        </h1>
-
-        {/* Subtitle */}
-        {destination.subtitle && (
-          <p className="text-xl text-foreground/70 italic mb-8">
-            {destination.subtitle}
-          </p>
-        )}
-
-        <hr className="border-foreground/10 mb-12" />
-
-        {/* Body */}
-        {destination.body && (
+      {/* Body Content */}
+      {destination.body && (
+        <article className="max-w-3xl mx-auto px-6 py-16">
           <PlaceBody content={destination.body} />
-        )}
-      </article>
+        </article>
+      )}
 
       {/* Places in this Destination */}
       {places.length > 0 && (
