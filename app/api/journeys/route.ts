@@ -27,7 +27,7 @@ export async function GET() {
         focus: j.Focus_Type || "",
         category: j.Category || "",
         journeyId: j.Journey_ID || "",
-        destinations: j.destinations || "",
+        destinations: j.Destinations || j.destinations || "",
       }));
 
     return NextResponse.json({
