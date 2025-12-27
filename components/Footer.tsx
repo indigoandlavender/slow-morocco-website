@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // Social Icons - flat, minimal, Anthropic style
 function SocialIcon({ name }: { name: string }) {
@@ -182,22 +182,8 @@ export default function Footer() {
   const showDisclaimer = siteConfig.siteCategory === "content";
   const showCurrency = siteConfig.siteCategory === "commercial";
 
-  useEffect(() => {
-    fetch("/api/footer")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setFooterData({
-            newsletter: data.data.newsletter || defaultFooterData.newsletter,
-            columns: data.data.columns || defaultFooterData.columns,
-            legal: data.data.legal || defaultFooterData.legal,
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch footer data:", err);
-      });
-  }, []);
+  // Footer data is now hardcoded above in defaultFooterData
+  // No API fetch - gives us full control from code
 
   const [subscribeMessage, setSubscribeMessage] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
