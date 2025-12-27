@@ -327,6 +327,10 @@ export interface Place {
   title: string;
   subtitle: string;
   category: string;
+  region: string;
+  address: string;
+  opening_hours: string;
+  fees: string;
   heroImage: string;
   heroCaption: string;
   excerpt: string;
@@ -337,6 +341,7 @@ export interface Place {
   imagesBy: string;
   sources: string;
   tags?: string;
+  notes?: string;
   published: string;
   featured: string;
   order: string;
@@ -348,7 +353,7 @@ export async function getPlaces(): Promise<Place[]> {
     
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Stories!A:Q',
+      range: 'Places!A:V',
     });
 
     const rows = response.data.values;
@@ -405,7 +410,7 @@ export async function getPlaceImages(slug: string): Promise<PlaceImage[]> {
     
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Story_Images!A:D',
+      range: 'Place_Images!A:D',
     });
 
     const rows = response.data.values;

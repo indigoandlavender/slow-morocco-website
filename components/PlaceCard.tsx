@@ -7,6 +7,11 @@ interface PlaceCardProps {
 }
 
 export default function PlaceCard({ place }: PlaceCardProps) {
+  // Parse regions (comma-separated)
+  const regions = place.region 
+    ? place.region.split(',').map(r => r.trim()) 
+    : [];
+
   return (
     <Link href={`/place/${place.slug}`} className="group block">
       {/* Image */}
@@ -25,10 +30,17 @@ export default function PlaceCard({ place }: PlaceCardProps) {
 
       {/* Content */}
       <div>
-        {place.category && (
-          <span className="text-xs uppercase tracking-wide text-foreground/50 mb-2 block">
-            {place.category}
-          </span>
+        {regions.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {regions.map((region) => (
+              <span 
+                key={region} 
+                className="text-xs uppercase tracking-wide text-foreground/50"
+              >
+                {region}
+              </span>
+            ))}
+          </div>
         )}
         <h3 className="font-display text-xl text-foreground mb-2 group-hover:text-olive transition-colors">
           {place.title}
