@@ -208,6 +208,24 @@ export default async function PlacePage({ params }: PageProps) {
           </p>
         )}
 
+        {/* Practical Info */}
+        {(place.address || place.opening_hours || place.fees || place.notes) && (
+          <div className="text-sm text-foreground/70 space-y-2 mb-8">
+            {place.address && (
+              <p><span className="text-foreground/50">Location:</span> {place.address}</p>
+            )}
+            {place.opening_hours && (
+              <p><span className="text-foreground/50">Hours:</span> {place.opening_hours}</p>
+            )}
+            {place.fees && (
+              <p><span className="text-foreground/50">Entry:</span> {place.fees}</p>
+            )}
+            {place.notes && (
+              <p><span className="text-foreground/50">Note:</span> {place.notes}</p>
+            )}
+          </div>
+        )}
+
         <hr className="border-foreground/10 mb-12" />
 
         {/* Body */}
