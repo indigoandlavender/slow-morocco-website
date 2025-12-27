@@ -27,6 +27,12 @@ export default function Header() {
               Journeys
             </Link>
             <Link
+              href="/places"
+              className="text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
+            >
+              Places
+            </Link>
+            <Link
               href="/about"
               className="text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity"
             >
@@ -65,6 +71,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Journeys
+            </Link>
+            <Link
+              href="/places"
+              className="block text-sm tracking-[0.15em] uppercase"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Places
             </Link>
             <Link
               href="/about"

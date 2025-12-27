@@ -57,6 +57,7 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         sand: "hsl(var(--sand))",
+        olive: "hsl(var(--olive))",
         "footer-background": "hsl(var(--footer-background))",
         "footer-foreground": "hsl(var(--footer-foreground))",
       },

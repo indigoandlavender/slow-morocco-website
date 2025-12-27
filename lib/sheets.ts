@@ -317,3 +317,113 @@ export async function unsubscribeFromNewsletter(
     return { success: false, message: "Something went wrong. Please try again." };
   }
 }
+
+// ============================================
+// PLACES SYSTEM
+// ============================================
+
+export interface Place {
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  heroImage: string;
+  heroCaption: string;
+  excerpt: string;
+  body: string;
+  readTime: string;
+  year: string;
+  textBy: string;
+  imagesBy: string;
+  sources: string;
+  tags?: string;
+  published: string;
+  featured: string;
+  order: string;
+}
+
+export async function getPlaces(): Promise<Place[]> {
+  try {
+    const sheets = getGoogleSheetsClient();
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: 'Stories!A:Q',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) return [];
+
+    const headers = rows[0];
+    const places = rows.slice(1).map((row: any[]) => {
+      const place: Record<string, string> = {};
+      headers.forEach((header: string, index: number) => {
+        let value = row[index] || '';
+        if (typeof value === 'string') {
+          value = value.replace(/<br>/g, '\n');
+        }
+        place[header] = value;
+      });
+      return place as unknown as Place;
+    });
+
+    return places.filter((place) => {
+      const pub = String(place.published || '').toLowerCase().trim();
+      return pub === 'true' || pub === 'yes' || pub === '1';
+    });
+  } catch (error) {
+    console.error('Error fetching places:', error);
+    return [];
+  }
+}
+
+export async function getPlaceBySlug(slug: string): Promise<Place | null> {
+  const places = await getPlaces();
+  return places.find((place) => place.slug === slug) || null;
+}
+
+export async function getFeaturedPlaces(): Promise<Place[]> {
+  const places = await getPlaces();
+  return places
+    .filter((place) => {
+      const featured = String(place.featured || '').toLowerCase().trim();
+      return featured === 'true' || featured === 'yes' || featured === '1';
+    })
+    .sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+}
+
+export interface PlaceImage {
+  place_slug: string;
+  image_order: number;
+  image_url: string;
+  caption: string;
+}
+
+export async function getPlaceImages(slug: string): Promise<PlaceImage[]> {
+  try {
+    const sheets = getGoogleSheetsClient();
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: 'Story_Images!A:D',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) return [];
+
+    const images = rows.slice(1)
+      .map((row: any[]) => ({
+        place_slug: row[0] || '',
+        image_order: parseInt(row[1]) || 0,
+        image_url: row[2] || '',
+        caption: row[3] || '',
+      }))
+      .filter((img) => img.place_slug === slug && img.image_url)
+      .sort((a, b) => a.image_order - b.image_order);
+
+    return images;
+  } catch (error) {
+    console.error('Error fetching place images:', error);
+    return [];
+  }
+}
