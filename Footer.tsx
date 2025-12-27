@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // Social Icons - flat, minimal, Anthropic style
 function SocialIcon({ name }: { name: string }) {
@@ -131,11 +131,12 @@ const defaultFooterData: FooterData = {
     },
     {
       number: 2,
-      title: "About Us",
+      title: "Places",
       links: [
-        { order: 1, label: "What We Offer", href: "/about", type: "link" },
-        { order: 2, label: "Our Guides", href: "/guides", type: "link" },
-        { order: 3, label: "Contact Us", href: "/contact", type: "link" },
+        { order: 1, label: "Cities", href: "/places/cities", type: "link" },
+        { order: 2, label: "Mountains", href: "/places/mountains", type: "link" },
+        { order: 3, label: "Coast", href: "/places/coast", type: "link" },
+        { order: 4, label: "Desert", href: "/places/desert", type: "link" },
       ],
     },
     {
@@ -147,6 +148,8 @@ const defaultFooterData: FooterData = {
         { order: 3, label: "Day Trips", href: "/day-trips", type: "link" },
         { order: 4, label: "What's Included", href: "/whats-included", type: "link" },
         { order: 5, label: "FAQ", href: "/faq", type: "link" },
+        { order: 6, label: "About Us", href: "/about", type: "link" },
+        { order: 7, label: "Contact Us", href: "/contact", type: "link" },
       ],
     },
     {
@@ -179,22 +182,8 @@ export default function Footer() {
   const showDisclaimer = siteConfig.siteCategory === "content";
   const showCurrency = siteConfig.siteCategory === "commercial";
 
-  useEffect(() => {
-    fetch("/api/footer")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setFooterData({
-            newsletter: data.data.newsletter || defaultFooterData.newsletter,
-            columns: data.data.columns || defaultFooterData.columns,
-            legal: data.data.legal || defaultFooterData.legal,
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch footer data:", err);
-      });
-  }, []);
+  // Footer data is now hardcoded above in defaultFooterData
+  // No API fetch - gives us full control from code
 
   const [subscribeMessage, setSubscribeMessage] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
