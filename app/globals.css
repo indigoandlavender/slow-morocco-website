@@ -53,6 +53,9 @@
   
   --radius: 0rem;
   
+  /* Olive accent for Slow Morocco */
+  --olive: 75 12% 28%;
+  
   /* Footer */
   --footer-background: 30 10% 18%;
   --footer-foreground: 40 20% 85%;
